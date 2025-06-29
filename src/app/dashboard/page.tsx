@@ -4,13 +4,13 @@ import { useState, useRef } from "react";
 
 const DEBUG = true; // Set to false to disable debug logging
 
-function debugLog(...args: any[]) {
+function debugLog(...args: unknown[]) {
   if (DEBUG) {
     console.log(...args);
   }
 }
 
-function debugError(...args: any[]) {
+function debugError(...args: unknown[]) {
   if (DEBUG) {
     console.error(...args);
   }
@@ -164,8 +164,10 @@ export default function Dashboard() {
         }
       }
     } catch (error) {
-      debugError("Network error:", error);
-      setError(`Network error: ${error}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      debugError("Network error:", errorMessage);
+      setError(`Network error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

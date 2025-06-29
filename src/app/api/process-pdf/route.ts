@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 const DEBUG = true; // Set to false to disable debug logging
 
-function debugLog(...args: any[]) {
+function debugLog(...args: unknown[]) {
   if (DEBUG) {
     console.log(...args);
   }
 }
 
-function debugError(...args: any[]) {
+function debugError(...args: unknown[]) {
   if (DEBUG) {
     console.error(...args);
   }
@@ -83,9 +83,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("DEBUG API: Error processing PDF:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("DEBUG API: Error processing PDF:", errorMessage);
     return NextResponse.json(
-      { error: `Processing failed: ${error}` },
+      { error: `Processing failed: ${errorMessage}` },
       { status: 500 }
     );
   }
