@@ -11,36 +11,68 @@ Uses rectangle highlights with a safe fallback to avoid any annotation‐binding
 Usage:
     python highlight_ac_simple.py input.pdf [output.pdf]
 """
-
-import re, sys, itertools
+import re
+import sys
+import itertools
 from pathlib import Path
-import pdfplumber, fitz
+from dataclasses import dataclass, field
+import pdfplumber
+import fitz
 
-# ─────────────── patterns ─────────────────────────────────────
+# ─────────────── Patterns ─────────────────────────────────────
 LI_PATTERN = re.compile(r'^\s*\d{1,3}\s+\d{1,2}/\d{1,2}/\d{4}')
-DATE_RX    = re.compile(r'\d{1,2}/\d{1,2}/\d{4}')
-TASK_RX    = re.compile(r'^[A-Za-z]\d{3}$')          # e.g. A104
-AC_HEADER  = "Adjustments and Credit"
+DATE_RX = re.compile(r'\d{1,2}/\d{1,2}/\d{4}')
+TASK_RX = re.compile(r'^[A-Za-z]\d{3}$')  # e.g. A104
+AC_HEADER = "Adjustments and Credit"
 
-# Your custom six‐color palette (hex → normalized RGB)
-PALETTE = [
-    (0xFC/255, 0xF4/255, 0x85/255),  # #FCF485
-    (0xC5/255, 0xFB/255, 0x72/255),  # #C5FB72
-    (0x38/255, 0xE5/255, 0xFF/255),  # #38E5FF
-    (0xDC/255, 0xAA/255, 0xFF/255),  # #DCAAFF
-    (0xFF/255, 0xA9/255, 0x7B/255),  # #FFA97B
-    (0xF8/255, 0x64/255, 0x64/255),  # #F86464
-]
+# ─────────────── Data Structures ──────────────────────────────
+@dataclass
+class LineItem:
+    keeper_rows: list[list[dict]] = field(default_factory=list)
+    ac_rows: list[list[dict]] = field(default_factory=list)
+    pages: set[int] = field(default_factory=set)
 
-# ─────────────── helpers ─────────────────────────────────────
-def clean(txt): return re.sub(r'\s+', ' ', txt.strip())
+    @property
+    def ac_words(self):
+        return [word for row in self.ac_rows for word in row]
+
+    @property
+    def first_page_num(self):
+        if not self.keeper_rows:
+            return None
+        return self.keeper_rows[0][0]['page_number'] - 1
+
+# ─────────────── Color Management ─────────────────────────────
+class ColorManager:
+    """Manages color assignments for keepers."""
+    PALETTE = [
+        (0xFC/255, 0xF4/255, 0x85/255),  # #FCF485
+        (0xC5/255, 0xFB/255, 0x72/255),  # #C5FB72
+        (0x38/255, 0xE5/255, 0xFF/255),  # #38E5FF
+        (0xDC/255, 0xAA/255, 0xFF/255),  # #DCAAFF
+        (0xFF/255, 0xA9/255, 0x7B/255),  # #FFA97B
+        (0xF8/255, 0x64/255, 0x64/255),  # #F86464
+    ]
+
+    def __init__(self):
+        self.keeper_colors = {}
+        self.color_cycle = itertools.cycle(self.PALETTE)
+
+    def get_color(self, keeper_key):
+        if keeper_key not in self.keeper_colors:
+            self.keeper_colors[keeper_key] = next(self.color_cycle)
+        return self.keeper_colors[keeper_key]
+
+# ─────────────── PDF Processing Helpers ───────────────────────
+def clean(txt):
+    return re.sub(r'\s+', ' ', txt.strip())
 
 def rebuild_rows(page):
-    words = page.extract_words(
-        x_tolerance=1, y_tolerance=1, keep_blank_chars=False
-    )
+    """Rebuilds rows from words, adding page_number to each word."""
+    words = page.extract_words(x_tolerance=1, y_tolerance=1, keep_blank_chars=False)
     rows = []
     for w in sorted(words, key=lambda w: (w['top'], w['x0'])):
+        w['page_number'] = page.page_number
         if not rows or abs(rows[-1][0]['top'] - w['top']) > 2:
             rows.append([w])
         else:
@@ -48,144 +80,133 @@ def rebuild_rows(page):
     return rows
 
 def bbox(words):
+    if not words: return None
     x0 = min(w['x0'] for w in words)
     y0 = min(w['top'] for w in words)
     x1 = max(w['x1'] for w in words)
     y1 = max(w['bottom'] for w in words)
-    return x0, y0, x1, y1
-
-def clip(rect, page):
-    x0, y0, x1, y1 = rect
-    x0, x1 = max(0, x0), min(page.rect.x1, x1)
-    y0, y1 = max(0, y0), min(page.rect.y1, y1)
-    if x1 - x0 < 0.5 or y1 - y0 < 0.5:
-        return None
     return (x0, y0, x1, y1)
 
+def clip(rect, page_rect):
+    if rect is None: return None
+    x0, y0, x1, y1 = rect
+    x0, x1 = max(0, x0), min(page_rect.x1, x1)
+    y0, y1 = max(0, y0), min(page_rect.y1, y1)
+    if x1 - x0 < 0.5 or y1 - y0 < 0.5:
+        return None
+    return fitz.Rect(x0, y0, x1, y1)
+
 def safe_highlight(page, rect, color):
-    """
-    Try a highlight‐annot; if it returns None (no text under it),
-    fall back to a rectangle annotation, then colour it.
-    """
     annot = page.add_highlight_annot(rect)
     if annot is None:
         annot = page.add_rect_annot(rect)
     annot.set_colors(stroke=color)
     annot.update()
 
-# ─────────────── parse invoice → line‐items ──────────────────
-def parse_invoice(path):
-    items, cur = [], None
-    with pdfplumber.open(path) as pdf:
-        all_rows = []
-        for p, pg in enumerate(pdf.pages):
-            for ridx, row in enumerate(rebuild_rows(pg)):
-                txt = clean(" ".join(w['text'] for w in row))
-                all_rows.append((p, ridx, row, txt))
+# ─────────────── Core Logic ───────────────────────────────────
+def parse_line_items(all_page_rows):
+    items, current_item = [], None
+    in_ac_block = False
 
-        for p, ridx, row, txt in all_rows:
-            if LI_PATTERN.match(txt):
-                if cur:
-                    items.append(cur)
-                cur = {
-                    "keeper_rows": [(p, ridx)],
-                    "ac_rows": [], "ac_pages": set(),
-                    "in_ac": False
-                }
-                continue
-            if not cur:
-                continue
+    for row in (r for page_rows in all_page_rows for r in page_rows):
+        row_text = clean(" ".join(w['text'] for w in row))
 
-            if not cur["in_ac"] and len(cur["keeper_rows"]) < 5:
-                cur["keeper_rows"].append((p, ridx))
+        if LI_PATTERN.match(row_text):
+            if current_item:
+                items.append(current_item)
+            current_item = LineItem()
+            in_ac_block = False
 
-            if txt.startswith(AC_HEADER):
-                cur["in_ac"] = True
-            elif cur["in_ac"]:
-                if LI_PATTERN.match(txt):
-                    cur["in_ac"] = False
-                else:
-                    cur["ac_rows"].append((p, ridx))
-                    cur["ac_pages"].add(p)
-
-        if cur:
-            items.append(cur)
-
-    # only keep those with actual A&C rows
-    return [it for it in items if it["ac_rows"]]
-
-# ─────────────── main highlighting ───────────────────────────
-def highlight(inp, out):
-    items   = parse_invoice(inp)
-    doc     = fitz.open(inp)
-    plumber = pdfplumber.open(inp)
-
-    keeper_colors = {}            # keeper_key → color
-    keeper_keys   = []            # to preserve order
-    pal           = itertools.cycle(PALETTE)
-
-    for it in items:
-        # -- determine keeper name words and normalized key --
-        pg0, r0 = it["keeper_rows"][0]
-        rows0    = rebuild_rows(plumber.pages[pg0])
-        if r0 >= len(rows0):
+        if not current_item:
             continue
 
-        first_words = rows0[r0]
-        texts       = [w["text"] for w in first_words]
+        # Capture keeper rows (up to 5 lines before A&C)
+        if not in_ac_block and len(current_item.keeper_rows) < 5:
+            current_item.keeper_rows.append(row)
 
-        try:
-            di = next(i for i,t in enumerate(texts) if DATE_RX.fullmatch(t))
-            ti = next(i for i,t in enumerate(texts[di+1:], start=di+1)
-                      if TASK_RX.fullmatch(t) or t == "Expense")
-            name_words = first_words[di+1:ti]
-            base_x0    = min(w["x0"] for w in name_words) if name_words else None
+        if row_text.startswith(AC_HEADER):
+            in_ac_block = True
+        elif in_ac_block:
+            if LI_PATTERN.match(row_text):
+                in_ac_block = False
+            else:
+                current_item.ac_rows.append(row)
+                current_item.pages.add(row[0]['page_number'] - 1)
 
-            # capture continuation rows aligned to same column
-            for _pg, _r in it["keeper_rows"][1:]:
-                if _pg != pg0 or _r >= len(rows0):
+    if current_item:
+        items.append(current_item)
+
+    return [it for it in items if it.ac_rows]
+
+def extract_keeper_name_words(item: LineItem):
+    if not item.keeper_rows:
+        return []
+
+    first_row = item.keeper_rows[0]
+    texts = [w["text"] for w in first_row]
+
+    try:
+        date_idx = next(i for i, t in enumerate(texts) if DATE_RX.fullmatch(t))
+        task_idx = next(i for i, t in enumerate(texts[date_idx + 1:], start=date_idx + 1)
+                        if TASK_RX.fullmatch(t) or t == "Expense")
+        name_words = first_row[date_idx + 1:task_idx]
+        base_x0 = min(w["x0"] for w in name_words) if name_words else None
+
+        # Capture continuation rows
+        if base_x0 is not None:
+            for row in item.keeper_rows[1:]:
+                # Ensure we are on the same page for continuation
+                if row[0]['page_number'] - 1 != item.first_page_num:
                     break
-                cont = [w for w in rows0[_r] if abs(w["x0"] - base_x0) < 3]
-                if not cont:
+                cont_words = [w for w in row if abs(w["x0"] - base_x0) < 3]
+                if not cont_words:
                     break
-                name_words += cont
-        except StopIteration:
-            # fallback: whole first row
-            name_words = first_words
+                name_words.extend(cont_words)
+        return name_words
+    except StopIteration:
+        return first_row # Fallback to the whole first row
 
-        # normalize key: lowercase and strip punctuation
+def highlight_invoice(inp: Path, out: Path):
+    doc = fitz.open(inp)
+    with pdfplumber.open(inp) as plumber:
+        # 1. Pre-process all pages once
+        all_page_rows = [rebuild_rows(p) for p in plumber.pages]
+
+    # 2. Parse line items from cached rows
+    line_items = parse_line_items(all_page_rows)
+    color_manager = ColorManager()
+
+    for item in line_items:
+        # 3. Extract keeper name and assign color
+        name_words = extract_keeper_name_words(item)
+        if not name_words:
+            continue
+
         keeper_key = " ".join(
             w["text"].strip(".,;:") for w in name_words
         ).lower()
+        color = color_manager.get_color(keeper_key)
 
-        # assign (or reuse) colour
-        if keeper_key not in keeper_colors:
-            keeper_colors[keeper_key] = next(pal)
-        color = keeper_colors[keeper_key]
-
-        # -- highlight the keeper‐name rectangle --
-        rect_name = clip(bbox(name_words), doc[pg0])
+        # 4. Highlight keeper name
+        page_num = name_words[0]['page_number'] - 1
+        page = doc[page_num]
+        rect_name = clip(bbox(name_words), page.rect)
         if rect_name:
-            safe_highlight(doc[pg0], rect_name, color)
+            safe_highlight(page, rect_name, color)
 
-        # -- highlight the A&C block on each page --
-        for pg in sorted(it["ac_pages"]):
-            rows_pg = rebuild_rows(plumber.pages[pg])
-            words   = [
-                w
-                for (_p, ridx) in it["ac_rows"]
-                if _p == pg and ridx < len(rows_pg)
-                for w in rows_pg[ridx]
-            ]
-            if not words:
+        # 5. Highlight A&C blocks
+        for pg_idx in sorted(item.pages):
+            ac_words_on_page = [w for w in item.ac_words if w['page_number'] - 1 == pg_idx]
+            if not ac_words_on_page:
                 continue
-            rect_block = clip(bbox(words), doc[pg])
+            
+            page = doc[pg_idx]
+            rect_block = clip(bbox(ac_words_on_page), page.rect)
             if rect_block:
-                safe_highlight(doc[pg], rect_block, color)
+                safe_highlight(page, rect_block, color)
 
     doc.save(out, deflate=True)
     doc.close()
-    plumber.close()
 
 # ─────────────── CLI ─────────────────────────────────────────
 if __name__ == "__main__":
@@ -193,7 +214,8 @@ if __name__ == "__main__":
         print(__doc__, file=sys.stderr)
         sys.exit(1)
 
-    inp = Path(sys.argv[1])
-    out = Path(sys.argv[2] if len(sys.argv) > 2 else "output_simple.pdf")
-    highlight(inp, out)
-    print("Done →", out)
+    inp_path = Path(sys.argv[1])
+    out_path = Path(sys.argv[2] if len(sys.argv) > 2 else "output_simple.pdf")
+
+    highlight_invoice(inp_path, out_path)
+    print("Done →", out_path)
