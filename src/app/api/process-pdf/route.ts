@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the file to the Python backend
-    const pythonApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/highlight`;
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000"; // Fallback for local development
+    const pythonApiUrl = `${baseUrl}/api/highlight`;
     debugLog("DEBUG API: Forwarding to Python API:", pythonApiUrl);
 
     const response = await fetch(pythonApiUrl, {
