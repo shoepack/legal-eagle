@@ -8,5 +8,11 @@
       "src": "api/highlight.py",
       "use": "@vercel/python"
     }
+  ],
+  "routes": [
+    {
+      "src": "/python-api/highlight",
+      "dest": "/api/highlight.py"
+    }
   ]
 }
