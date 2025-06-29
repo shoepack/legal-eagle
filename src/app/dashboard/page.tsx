@@ -1,44 +1,174 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+
+const DEBUG = true; // Set to false to disable debug logging
+
+function debugLog(...args: any[]) {
+  if (DEBUG) {
+    console.log(...args);
+  }
+}
+
+function debugError(...args: any[]) {
+  if (DEBUG) {
+    console.error(...args);
+  }
+}
+
+interface SelectedFile {
+  file: File;
+  name: string;
+  size: string;
+}
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const validateFile = (file: File): string | null => {
+    if (file.type !== "application/pdf") {
+      return "Only PDF files are allowed";
+    }
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return "File size must be less than 10MB";
+    }
+    return null;
+  };
+
+  const handleFileSelect = (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
+      setSelectedFile(null);
+      return;
+    }
+
+    setError(null);
+    setSelectedFile({
+      file,
+      name: file.name,
+      size: formatFileSize(file.size),
+    });
+  };
+
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(false);
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
 
-    const formData = new FormData(event.currentTarget);
-    const file = formData.get("file");
-
-    if (file instanceof File && file.size > 0) {
-      try {
-        const response = await fetch("/api/highlight", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "highlighted.pdf";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        } else {
-          const errorText = await response.text();
-          console.error("File upload failed:", response.status, errorText);
-          alert(`Upload failed: ${response.status} - ${errorText}`);
-        }
-      } catch (error) {
-        console.error("Network error:", error);
-        alert(`Network error: ${error}`);
-      }
+    if (!selectedFile) {
+      setError("Please select a PDF file");
+      return;
     }
-    setIsLoading(false);
+
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", selectedFile.file);
+
+    try {
+      debugLog("DEBUG: Starting file upload...");
+      debugLog("DEBUG: Selected file:", selectedFile.name, selectedFile.size);
+      debugLog("DEBUG: FormData contents:", formData.get("file"));
+
+      const response = await fetch("/api/process-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      debugLog("DEBUG: Response status:", response.status);
+      debugLog(
+        "DEBUG: Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      if (response.ok) {
+        debugLog("DEBUG: Response OK, processing blob...");
+        const blob = await response.blob();
+        debugLog("DEBUG: Blob size:", blob.size, "type:", blob.type);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `highlighted_${selectedFile.name}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        debugLog("DEBUG: Response not OK, trying to parse as JSON...");
+        const responseText = await response.text();
+        debugLog(
+          "DEBUG: Raw response text:",
+          responseText.substring(0, 200) + "..."
+        );
+
+        try {
+          const errorData = JSON.parse(responseText);
+          debugError("File upload failed:", response.status, errorData);
+          setError(errorData.error || `Upload failed: ${response.status}`);
+        } catch (parseError) {
+          debugError("Failed to parse error response as JSON:", parseError);
+          debugError("Raw response:", responseText.substring(0, 500));
+          setError(
+            `Upload failed: ${response.status} - Server returned non-JSON response`
+          );
+        }
+      }
+    } catch (error) {
+      debugError("Network error:", error);
+      setError(`Network error: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,47 +193,127 @@ export default function Dashboard() {
               >
                 Select PDF File
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-violet-400 transition-colors">
+
+              {/* File Upload Area */}
+              <div
+                className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors cursor-pointer ${
+                  isDragOver
+                    ? "border-violet-500 bg-violet-50"
+                    : selectedFile
+                    ? "border-green-400 bg-green-50"
+                    : "border-gray-300 hover:border-violet-400"
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <div className="flex text-sm text-gray-600">
-                    <label
-                      htmlFor="file"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-violet-600 hover:text-violet-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-violet-500"
-                    >
-                      <span>Upload a file</span>
-                      <input
-                        id="file"
-                        name="file"
-                        type="file"
-                        accept="application/pdf"
-                        className="sr-only"
-                        required
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-gray-500">PDF files only</p>
+                  {selectedFile ? (
+                    <div className="space-y-2">
+                      <svg
+                        className="mx-auto h-12 w-12 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <div className="text-sm text-gray-900">
+                        <p className="font-medium">{selectedFile.name}</p>
+                        <p className="text-gray-500">{selectedFile.size}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearSelectedFile();
+                        }}
+                        className="text-sm text-violet-600 hover:text-violet-500 font-medium"
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <svg
+                        className="mx-auto h-12 w-12 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <div className="flex text-sm text-gray-600">
+                        <span className="relative cursor-pointer bg-white rounded-md font-medium text-violet-600 hover:text-violet-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-violet-500">
+                          Upload a file
+                        </span>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PDF files only, up to 10MB
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                id="file"
+                name="file"
+                type="file"
+                accept="application/pdf"
+                className="sr-only"
+                onChange={handleFileInputChange}
+              />
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Error</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
             <div className="flex justify-center">
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !selectedFile}
                 className="bg-violet-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
@@ -142,7 +352,7 @@ export default function Dashboard() {
               How it works:
             </h3>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Upload your legal invoice PDF</li>
+              <li>• Upload your legal invoice PDF (up to 10MB)</li>
               <li>
                 • Our system automatically identifies Adjustments and Credit
                 sections

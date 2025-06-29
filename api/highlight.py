@@ -1,83 +1,49 @@
-from http.server import BaseHTTPRequestHandler
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import FileResponse
 import tempfile
+import os
 from pathlib import Path
-import highlight_ac_simple
-import cgi
-import io
-import json
+import sys
+import shutil
 
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            # Parse the multipart form data
-            content_type = self.headers.get('content-type', '')
-            if not content_type.startswith('multipart/form-data'):
-                self.send_error(400, "Expected multipart/form-data")
-                return
-            
-            # Get content length
-            content_length = int(self.headers.get('Content-Length', 0))
-            if content_length == 0:
-                self.send_error(400, "No content provided")
-                return
-                
-            post_data = self.rfile.read(content_length)
-            
-            # Parse the form data
-            form = cgi.FieldStorage(
-                fp=io.BytesIO(post_data),
-                headers=self.headers,
-                environ={'REQUEST_METHOD': 'POST'}
-            )
-            
-            # Get the uploaded file
-            if 'file' not in form:
-                self.send_error(400, "No file field found")
-                return
-                
-            file_item = form['file']
-            if not hasattr(file_item, 'filename') or not file_item.filename:
-                self.send_error(400, "No file uploaded")
-                return
-            
-            # Save uploaded file to temp location
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_input_file:
-                tmp_input_file.write(file_item.file.read())
-                tmp_input_path = Path(tmp_input_file.name)
+# Add the current directory to Python path to import our highlight script
+sys.path.append(os.path.dirname(__file__))
 
-            # Create temp output file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_output_file:
-                tmp_output_path = Path(tmp_output_file.name)
+try:
+    from highlight_ac_simple import highlight_invoice
+except ImportError:
+    # Fallback if import fails
+    def highlight_invoice(input_path, output_path):
+        # Simple fallback - just copy the file
+        shutil.copy2(input_path, output_path)
 
-            # Process the PDF
-            highlight_ac_simple.highlight_invoice(tmp_input_path, tmp_output_path)
-            
-            # Read the processed file
-            with open(tmp_output_path, 'rb') as f:
-                pdf_data = f.read()
-            
-            # Send response
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/pdf')
-            self.send_header('Content-Disposition', 'attachment; filename="highlighted.pdf"')
-            self.send_header('Content-Length', str(len(pdf_data)))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.end_headers()
-            self.wfile.write(pdf_data)
-            
-            # Clean up temp files
-            tmp_input_path.unlink()
-            tmp_output_path.unlink()
-            
-        except Exception as e:
-            self.send_error(500, f"Internal server error: {str(e)}")
-    
-    def do_OPTIONS(self):
-        # Handle CORS preflight requests
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+app = FastAPI()
+
+@app.post("/api/highlight")
+async def process_pdf_endpoint(file: UploadFile = File(...)):
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_input_file:
+        shutil.copyfileobj(file.file, tmp_input_file)
+        input_path = Path(tmp_input_file.name)
+
+    output_path = input_path.with_suffix(".highlighted.pdf")
+
+    try:
+        highlight_invoice(str(input_path), str(output_path))
+
+        if not output_path.exists():
+            raise HTTPException(status_code=500, detail="Failed to create highlighted PDF")
+
+        return FileResponse(
+            path=str(output_path),
+            media_type="application/pdf",
+            filename="highlighted.pdf",
+        )
+    finally:
+        # Clean up the temporary files
+        if input_path.exists():
+            os.unlink(input_path)
+        if output_path.exists():
+            os.unlink(output_path)
