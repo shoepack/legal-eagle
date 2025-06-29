@@ -1,4 +1,4 @@
-# Legal Eagle - Invoice Highlighter
+# LegalUtils - Invoice Highlighter
 
 This script, `highlight_ac_simple.py`, is a Python tool for processing PDF invoices. It automatically identifies and highlights specific sections within an invoice to make reviewing easier.
 

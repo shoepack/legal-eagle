@@ -9,7 +9,7 @@ export default function Pricing() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Get lifetime access to Legal Eagle PDF Highlighter for a one-time
+            Get lifetime access to LegalUtils PDF Highlighter for a one-time
             payment. No subscriptions, no hidden fees.
           </p>
         </div>

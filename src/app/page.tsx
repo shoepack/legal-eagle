@@ -7,7 +7,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Legal Eagle
+            LegalUtils
             <span className="block text-violet-600">PDF Highlighter</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -36,7 +36,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Why Choose Legal Eagle?
+            Why Choose LegalUtils?
           </h2>
           <p className="text-lg text-gray-600">
             Streamline your legal document review process

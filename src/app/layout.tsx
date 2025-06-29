@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Legal Eagle PDF Highlighter",
+  title: "LegalUtils PDF Highlighter",
   description:
     "Automatically highlight Adjustments and Credit sections in legal invoices. Save time and improve accuracy with our intelligent PDF processing tool.",
 };
