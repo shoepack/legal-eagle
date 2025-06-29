@@ -61,9 +61,16 @@ export async function POST(request: NextRequest) {
     const pythonApiUrl = `${baseUrl}/api/highlight`;
     debugLog("DEBUG API: Forwarding to Python API:", pythonApiUrl);
 
+    const headers: HeadersInit = {};
+    if (process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
+      headers["x-vercel-protection-bypass"] =
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    }
+
     const response = await fetch(pythonApiUrl, {
       method: "POST",
       body: formData,
+      headers,
     });
 
     if (!response.ok) {
