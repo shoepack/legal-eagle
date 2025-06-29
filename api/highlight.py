@@ -19,7 +19,7 @@ except ImportError:
 
 app = FastAPI()
 
-@app.post("/api/highlight")
+@app.post("/python-api/highlight")
 async def process_pdf_endpoint(file: UploadFile = File(...)):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
