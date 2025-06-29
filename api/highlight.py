@@ -42,8 +42,6 @@ async def process_pdf_endpoint(file: UploadFile = File(...)):
             filename="highlighted.pdf",
         )
     finally:
-        # Clean up the temporary files
+        # Clean up the temporary input file
         if input_path.exists():
             os.unlink(input_path)
-        if output_path.exists():
-            os.unlink(output_path)

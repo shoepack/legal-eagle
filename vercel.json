@@ -9,14 +9,10 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/python-api/highlight",
-      "dest": "/api/highlight.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/python-api/highlight",
+      "destination": "/api/highlight.py"
     }
   ]
 }
