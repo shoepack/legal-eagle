@@ -12,7 +12,6 @@ Usage:
     python highlight_ac_simple.py input.pdf [output.pdf]
 """
 import re
-import sys
 import itertools
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -208,14 +207,22 @@ def highlight_invoice(inp: Path, out: Path):
     doc.save(out, deflate=True)
     doc.close()
 
-# ─────────────── CLI ─────────────────────────────────────────
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(__doc__, file=sys.stderr)
+    import sys
+    if len(sys.argv) < 3:
+        print("Usage: python highlight_ac_simple.py input.pdf output.pdf")
         sys.exit(1)
-
-    inp_path = Path(sys.argv[1])
-    out_path = Path(sys.argv[2] if len(sys.argv) > 2 else "output_simple.pdf")
-
-    highlight_invoice(inp_path, out_path)
-    print("Done →", out_path)
+    
+    input_path = Path(sys.argv[1])
+    output_path = Path(sys.argv[2])
+    
+    if not input_path.exists():
+        print(f"Error: Input file {input_path} does not exist")
+        sys.exit(1)
+    
+    try:
+        highlight_invoice(input_path, output_path)
+        print(f"Successfully processed {input_path} -> {output_path}")
+    except Exception as e:
+        print(f"Error processing PDF: {e}")
+        sys.exit(1)
