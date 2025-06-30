@@ -13,7 +13,7 @@ export default function Home() {
         const { top, height } = timeline.getBoundingClientRect();
         const newScroll = Math.max(
           0,
-          Math.min(1, (window.innerHeight * 0.1 - top) / height)
+          Math.min(1, (window.innerHeight * 0.45 - top) / height)
         );
         setScroll(newScroll);
       }
