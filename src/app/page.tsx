@@ -103,7 +103,7 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-semibold text-navy mb-2">
-              Streamlined Legal Document Review
+              Streamlined Document Review
             </h3>
             <p className="text-slate-gray">
               Rapidly identifies & marks crucial sections in legal PDFs for
