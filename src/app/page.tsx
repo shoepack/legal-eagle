@@ -1,10 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 
 export default function Home() {
   const [scroll, setScroll] = useState(0);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const lastDotRef = useRef<HTMLDivElement>(null);
+  const lastScroll = useRef(0);
+  const [dotPositions, setDotPositions] = useState<number[]>([]);
+  const timelineItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,11 +21,51 @@ export default function Home() {
           Math.min(1, (window.innerHeight * 0.45 - top) / height)
         );
         setScroll(newScroll);
+
+        if (newScroll >= 1 && lastScroll.current < 1) {
+          const lastDot = lastDotRef.current;
+          if (lastDot) {
+            const { x, y } = lastDot.getBoundingClientRect();
+            const origin = {
+              x: (x + lastDot.offsetWidth / 2) / window.innerWidth,
+              y: (y + lastDot.offsetHeight / 2) / window.innerHeight,
+            };
+            confetti({
+              particleCount: 100,
+              spread: 360,
+              origin,
+            });
+          }
+        }
+        lastScroll.current = newScroll;
       }
     };
 
+    const calculateDotPositions = () => {
+      const timeline = timelineRef.current;
+      if (timeline) {
+        const timelineHeight = timeline.offsetHeight;
+        const positions = timelineItemRefs.current
+          .map((ref) => {
+            if (ref) {
+              const dotTop = ref.offsetTop + ref.offsetHeight / 2;
+              return dotTop / timelineHeight;
+            }
+            return 0;
+          })
+          .filter((pos) => pos > 0);
+        setDotPositions(positions);
+      }
+    };
+
+    calculateDotPositions();
+    window.addEventListener("resize", calculateDotPositions);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("resize", calculateDotPositions);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
   return (
     <main className="min-h-screen">
@@ -104,9 +149,16 @@ export default function Home() {
               className="timeline-progress"
               style={{ height: `${scroll * 100}%` }}
             ></div>
-            <div className="timeline-item">
+            <div
+              className="timeline-item"
+              ref={(el) => {
+                timelineItemRefs.current[0] = el;
+              }}
+            >
               <div
-                className={`timeline-dot ${scroll >= 0.33 ? "reached" : ""}`}
+                className={`timeline-dot ${
+                  scroll >= (dotPositions[0] || 0) ? "reached" : ""
+                }`}
               ></div>
               <div className="timeline-content">
                 <h3 className="text-xl font-semibold text-navy mb-2">
@@ -117,9 +169,16 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="timeline-item">
+            <div
+              className="timeline-item"
+              ref={(el) => {
+                timelineItemRefs.current[1] = el;
+              }}
+            >
               <div
-                className={`timeline-dot ${scroll >= 0.66 ? "reached" : ""}`}
+                className={`timeline-dot ${
+                  scroll >= (dotPositions[1] || 0) ? "reached" : ""
+                }`}
               ></div>
               <div className="timeline-content">
                 <h3 className="text-xl font-semibold text-navy mb-2">
@@ -131,9 +190,17 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="timeline-item">
+            <div
+              className="timeline-item"
+              ref={(el) => {
+                timelineItemRefs.current[2] = el;
+              }}
+            >
               <div
-                className={`timeline-dot ${scroll >= 1 ? "reached" : ""}`}
+                ref={lastDotRef}
+                className={`timeline-dot ${
+                  scroll >= (dotPositions[2] || 1) ? "reached" : ""
+                }`}
               ></div>
               <div className="timeline-content">
                 <h3 className="text-xl font-semibold text-navy mb-2">
@@ -142,25 +209,6 @@ export default function Home() {
                 <p className="text-slate-gray">
                   Receive a detailed report with actionable insights in minutes.
                 </p>
-              </div>
-            </div>
-            <div
-              className="timeline-item"
-              style={{ opacity: scroll >= 1 ? 1 : 0 }}
-            >
-              <div className="timeline-dot reached">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 text-white"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.454-12.68a.75.75 0 011.04-.208z"
-                    clipRule="evenodd"
-                  />
-                </svg>
               </div>
             </div>
           </div>
@@ -180,7 +228,8 @@ export default function Home() {
               Is my data secure?
             </h3>
             <p className="text-slate-gray">
-              Yes, we use bank-grade encryption to protect your data.
+              Absolutely. We take great care in protecting your data, storing it
+              only temporarily during processing.
             </p>
           </div>
           <div className="mb-4">
@@ -188,8 +237,8 @@ export default function Home() {
               What types of documents can I upload?
             </h3>
             <p className="text-slate-gray">
-              We support a wide range of document types, including PDFs, Word
-              documents, and more.
+              PDFs are currently supported. Let us know if you need to upload
+              other formats.
             </p>
           </div>
         </div>

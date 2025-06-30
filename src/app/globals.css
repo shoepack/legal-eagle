@@ -81,6 +81,9 @@ body {
 
 .timeline-dot.reached {
   background-color: #4fd1c5;
+}
+
+.timeline-item:not(:last-child) .timeline-dot.reached {
   animation: pulse 2s infinite;
 }
 
