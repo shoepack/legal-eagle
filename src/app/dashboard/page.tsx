@@ -386,48 +386,6 @@ export default function Dashboard() {
               <li>• Download your highlighted PDF instantly</li>
             </ul>
           </div>
-
-          <div className="mt-12">
-            <h2 className="text-2xl font-heading font-bold text-navy mb-6 text-center">
-              Frequently Asked Questions
-            </h2>
-            <div className="space-y-8">
-              <div>
-                <h3 className="font-semibold text-lg text-navy mb-2">
-                  How long are my documents stored?
-                </h3>
-                <p className="text-slate-gray">
-                  Your data privacy is important. Uploaded files are encrypted
-                  in transit (using HTTPS) and are only held in our
-                  system`&apos;`s memory during the highlighting process. We do
-                  not store your documents on our servers after processing is
-                  complete.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-navy mb-2">
-                  Are there file size or page-count limits?
-                </h3>
-                <p className="text-slate-gray">
-                  We currently support PDFs up to 10 MB. While there`&apos;`s no
-                  strict page limit, exceptionally large documents may not be
-                  processed successfully. If you encounter issues, we recommend
-                  splitting the document into smaller parts.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-navy mb-2">
-                  How long does document processing take?
-                </h3>
-                <p className="text-slate-gray">
-                  Processing time is typically under two minutes. The
-                  `&quot;`Highlight PDF`&quot;` button will show a
-                  `&quot;`Processing...`&quot;` state, and your download will
-                  begin automatically once the new file is ready.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </main>

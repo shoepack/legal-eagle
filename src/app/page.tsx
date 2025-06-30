@@ -241,6 +241,38 @@ export default function Home() {
               other formats.
             </p>
           </div>
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-navy mb-2">
+              How long are my documents stored?
+            </h3>
+            <p className="text-slate-gray">
+              Your data privacy is important. Uploaded files are encrypted in
+              transit (using HTTPS) and are only held in our system`'`s memory
+              during the highlighting process. We do not store your documents on
+              our servers after processing is complete.
+            </p>
+          </div>
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-navy mb-2">
+              Are there file size or page-count limits?
+            </h3>
+            <p className="text-slate-gray">
+              We currently support PDFs up to 10 MB. While there`'`s no strict
+              page limit, exceptionally large documents may not be processed
+              successfully. If you encounter issues, we recommend splitting the
+              document into smaller parts.
+            </p>
+          </div>
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-navy mb-2">
+              How long does document processing take?
+            </h3>
+            <p className="text-slate-gray">
+              Processing time is typically under two minutes. The `"`Highlight
+              PDF`"` button will show a `"`Processing...`"` state, and your
+              download will begin automatically once the new file is ready.
+            </p>
+          </div>
         </div>
       </div>
 
