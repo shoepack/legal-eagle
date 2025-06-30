@@ -103,31 +103,31 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-semibold text-navy mb-2">
-              Intelligent Document Processing
+              Streamlined Legal Document Review
             </h3>
             <p className="text-slate-gray">
-              Our AI-powered tools automatically extract and analyze key data
-              from your legal documents.
+              Rapidly identifies & marks crucial sections in legal PDFs for
+              attorney/timekeeper review, saving significant time.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-semibold text-navy mb-2">
-              Seamless Collaboration
+              User-Friendly Experience
             </h3>
             <p className="text-slate-gray">
-              Share and collaborate on documents with your team in real-time,
-              from anywhere.
+              Easily transform complex legal PDFs into clearly highlighted
+              documents for quick understanding.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-semibold text-navy mb-2">
-              Bank-Grade Security
+              Strict Data Privacy
             </h3>
             <p className="text-slate-gray">
-              Your data is protected with the same level of security as a bank,
-              so you can work with confidence.
+              Your data privacy is paramount. Information is stored only
+              temporarily during processing and is not retained.
             </p>
           </div>
         </div>
