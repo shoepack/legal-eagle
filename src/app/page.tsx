@@ -1,6 +1,27 @@
+"use client";
 import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
+  const [scroll, setScroll] = useState(0);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const timeline = timelineRef.current!;
+      if (timeline) {
+        const { top, height } = timeline.getBoundingClientRect();
+        const newScroll = Math.max(
+          0,
+          Math.min(1, (window.innerHeight * 0.3 - top) / height)
+        );
+        setScroll(newScroll);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -68,7 +89,7 @@ export default function Home() {
       </div>
 
       {/* How It Works Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-100 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-heading font-bold text-navy mb-4">
@@ -78,31 +99,69 @@ export default function Home() {
               Get started in just a few simple steps.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <h3 className="text-xl font-semibold text-navy mb-2">
-                1. Upload Your Documents
-              </h3>
-              <p className="text-slate-gray">
-                Drag and drop your legal documents into our secure portal.
-              </p>
+          <div className="timeline" ref={timelineRef}>
+            <div
+              className="timeline-progress"
+              style={{ height: `${scroll * 100}%` }}
+            ></div>
+            <div className="timeline-item">
+              <div
+                className={`timeline-dot ${scroll >= 0.33 ? "reached" : ""}`}
+              ></div>
+              <div className="timeline-content">
+                <h3 className="text-xl font-semibold text-navy mb-2">
+                  1. Upload Your Documents
+                </h3>
+                <p className="text-slate-gray">
+                  Drag and drop your legal documents into our secure portal.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-navy mb-2">
-                2. We Analyze Your Data
-              </h3>
-              <p className="text-slate-gray">
-                Our AI-powered tools get to work, extracting and analyzing key
-                information.
-              </p>
+            <div className="timeline-item">
+              <div
+                className={`timeline-dot ${scroll >= 0.66 ? "reached" : ""}`}
+              ></div>
+              <div className="timeline-content">
+                <h3 className="text-xl font-semibold text-navy mb-2">
+                  2. We Analyze Your Data
+                </h3>
+                <p className="text-slate-gray">
+                  Our AI-powered tools get to work, extracting and analyzing key
+                  information.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-navy mb-2">
-                3. Get Actionable Insights
-              </h3>
-              <p className="text-slate-gray">
-                Receive a detailed report with actionable insights in minutes.
-              </p>
+            <div className="timeline-item">
+              <div
+                className={`timeline-dot ${scroll >= 1 ? "reached" : ""}`}
+              ></div>
+              <div className="timeline-content">
+                <h3 className="text-xl font-semibold text-navy mb-2">
+                  3. Get Actionable Insights
+                </h3>
+                <p className="text-slate-gray">
+                  Receive a detailed report with actionable insights in minutes.
+                </p>
+              </div>
+            </div>
+            <div
+              className="timeline-item"
+              style={{ opacity: scroll >= 1 ? 1 : 0 }}
+            >
+              <div className="timeline-dot reached">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-6 h-6 text-white"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.454-12.68a.75.75 0 011.04-.208z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>

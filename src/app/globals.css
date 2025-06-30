@@ -5,3 +5,112 @@
 body {
   @apply bg-white text-slate-gray;
 }
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 209, 197, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(79, 209, 197, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 209, 197, 0);
+  }
+}
+
+.timeline {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.timeline::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  background-color: #cbd5e1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  margin-left: -3px;
+}
+
+.timeline-progress {
+  position: absolute;
+  width: 6px;
+  background-color: #4fd1c5;
+  top: 0;
+  left: 50%;
+  margin-left: -3px;
+  z-index: 1;
+  transition: height 0.2s ease-out;
+}
+
+.timeline-item {
+  padding: 10px 40px;
+  position: relative;
+  background-color: inherit;
+  width: 50%;
+  margin-bottom: 50px;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.timeline-item:nth-child(odd) {
+  left: 0;
+}
+
+.timeline-item:nth-child(even) {
+  left: 50%;
+}
+
+.timeline-dot {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  right: -15px;
+  background-color: white;
+  border: 4px solid #4fd1c5;
+  top: 50px;
+  border-radius: 50%;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timeline-dot.reached {
+  background-color: #4fd1c5;
+  animation: pulse 2s infinite;
+}
+
+.timeline-item:nth-child(even) .timeline-dot {
+  left: -15px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-item:last-child .timeline-dot {
+  top: auto;
+  bottom: -15px;
+}
+
+.timeline-content {
+  padding: 20px 30px;
+  background-color: white;
+  position: relative;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.timeline-content:hover {
+  background-color: #1a202c;
+}
+
+.timeline-content:hover h3,
+.timeline-content:hover p {
+  color: #ffffff;
+}
