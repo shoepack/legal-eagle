@@ -107,7 +107,7 @@ export default function Home() {
             </h3>
             <p className="text-slate-gray">
               Rapidly identifies & marks crucial sections in legal PDFs for
-              attorney/timekeeper review, saving significant time.
+              timekeepers to review, saving significant time.
             </p>
           </div>
 
