@@ -63,7 +63,7 @@ export default function Dashboard() {
       name: file.name,
       size: formatFileSize(file.size),
     });
-    setExportedFileName(file.name.replace(/\.pdf$/i, "") + "_highlighted.pdf");
+    setExportedFileName(file.name.replace(/\.pdf$/i, "") + "-highlighted.pdf");
   };
 
   const handleFileInputChange = (
@@ -141,7 +141,7 @@ export default function Dashboard() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = exportedFileName || `highlighted_${selectedFile.name}`;
+        a.download = exportedFileName || `highlighted-${selectedFile.name}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
