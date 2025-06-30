@@ -398,9 +398,10 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-slate-gray">
                   Your data privacy is important. Uploaded files are encrypted
-                  in transit (using HTTPS) and are only held in our system's
-                  memory during the highlighting process. We do not store your
-                  documents on our servers after processing is complete.
+                  in transit (using HTTPS) and are only held in our
+                  system`&apos;`s memory during the highlighting process. We do
+                  not store your documents on our servers after processing is
+                  complete.
                 </p>
               </div>
               <div>
@@ -408,7 +409,7 @@ export default function Dashboard() {
                   Are there file size or page-count limits?
                 </h3>
                 <p className="text-slate-gray">
-                  We currently support PDFs up to 10 MB. While there is no
+                  We currently support PDFs up to 10 MB. While there`&apos;`s no
                   strict page limit, exceptionally large documents may not be
                   processed successfully. If you encounter issues, we recommend
                   splitting the document into smaller parts.
@@ -419,9 +420,10 @@ export default function Dashboard() {
                   How long does document processing take?
                 </h3>
                 <p className="text-slate-gray">
-                  Processing time is typically under two minutes. The "Highlight
-                  PDF" button will show a "Processing..." state, and your
-                  download will begin automatically once the new file is ready.
+                  Processing time is typically under two minutes. The
+                  `&quot;`Highlight PDF`&quot;` button will show a
+                  `&quot;`Processing...`&quot;` state, and your download will
+                  begin automatically once the new file is ready.
                 </p>
               </div>
             </div>
