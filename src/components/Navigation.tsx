@@ -11,7 +11,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-gray-900">
+            <Link href="/" className="text-xl font-bold text-navy">
               LegalUtils
             </Link>
           </div>
@@ -19,30 +19,30 @@ export default function Navigation() {
             <Link
               href="/"
               className={`${
-                pathname === "/" ? "text-violet-600" : "text-gray-500"
-              } hover:text-violet-600 px-3 py-2 text-sm font-medium`}
+                pathname === "/" ? "text-teal" : "text-slate-gray"
+              } hover:text-teal px-3 py-2 text-sm font-medium`}
             >
               Home
             </Link>
             <Link
               href="/pricing"
               className={`${
-                pathname === "/pricing" ? "text-violet-600" : "text-gray-500"
-              } hover:text-violet-600 px-3 py-2 text-sm font-medium`}
+                pathname === "/pricing" ? "text-teal" : "text-slate-gray"
+              } hover:text-teal px-3 py-2 text-sm font-medium`}
             >
               Pricing
             </Link>
             <Link
               href="/login"
               className={`${
-                pathname === "/login" ? "text-violet-600" : "text-gray-500"
-              } hover:text-violet-600 px-3 py-2 text-sm font-medium`}
+                pathname === "/login" ? "text-teal" : "text-slate-gray"
+              } hover:text-teal px-3 py-2 text-sm font-medium`}
             >
               Login
             </Link>
             <Link
               href="/dashboard"
-              className="bg-violet-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-violet-700"
+              className="bg-teal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90"
             >
               Dashboard
             </Link>

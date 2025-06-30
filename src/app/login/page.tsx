@@ -20,16 +20,16 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-heading font-bold text-navy">
           {isLogin ? "Sign in to your account" : "Create your account"}
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-slate-gray">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="font-medium text-violet-600 hover:text-violet-500"
+            className="font-medium text-teal hover:text-teal/90"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>
@@ -43,7 +43,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-slate-gray"
                 >
                   Full Name
                 </label>
@@ -53,7 +53,7 @@ export default function Login() {
                     name="name"
                     type="text"
                     required
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -63,7 +63,7 @@ export default function Login() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-gray"
               >
                 Email address
               </label>
@@ -74,7 +74,7 @@ export default function Login() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
                   placeholder="Enter your email"
                 />
               </div>
@@ -83,7 +83,7 @@ export default function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-gray"
               >
                 Password
               </label>
@@ -94,7 +94,7 @@ export default function Login() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
                   placeholder="Enter your password"
                 />
               </div>
@@ -107,11 +107,11 @@ export default function Login() {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-teal focus:ring-teal border-gray-300 rounded"
                   />
                   <label
                     htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-900"
+                    className="ml-2 block text-sm text-slate-gray"
                   >
                     Remember me
                   </label>
@@ -120,7 +120,7 @@ export default function Login() {
                 <div className="text-sm">
                   <a
                     href="#"
-                    className="font-medium text-violet-600 hover:text-violet-500"
+                    className="font-medium text-teal hover:text-teal/90"
                   >
                     Forgot your password?
                   </a>
@@ -132,7 +132,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -167,43 +167,11 @@ export default function Login() {
             </div>
           </form>
 
-          {!isLogin && (
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">
-                    Payment required
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-violet-50 rounded-lg">
-                <div className="text-center">
-                  <h3 className="text-lg font-medium text-violet-900 mb-2">
-                    Lifetime Access - $25
-                  </h3>
-                  <p className="text-sm text-violet-700 mb-4">
-                    One-time payment for unlimited PDF processing
-                  </p>
-                  <button className="w-full bg-violet-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-violet-700 transition-colors">
-                    Pay with Stripe
-                  </button>
-                  <p className="text-xs text-violet-600 mt-2">
-                    30-day money-back guarantee
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="mt-6">
             <div className="text-center">
               <Link
                 href="/"
-                className="text-sm text-gray-600 hover:text-gray-500"
+                className="text-sm text-slate-gray hover:text-slate-gray/90"
               >
                 ← Back to home
               </Link>

@@ -174,13 +174,13 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12">
+    <main className="min-h-screen bg-white py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-heading font-bold text-navy mb-4">
             PDF Highlighter Dashboard
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-slate-gray">
             Upload your legal invoices to automatically highlight Adjustments
             and Credit sections
           </p>
@@ -191,7 +191,7 @@ export default function Dashboard() {
             <div>
               <label
                 htmlFor="file"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-slate-gray mb-2"
               >
                 Select PDF File
               </label>
@@ -200,10 +200,10 @@ export default function Dashboard() {
               <div
                 className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors cursor-pointer ${
                   isDragOver
-                    ? "border-violet-500 bg-violet-50"
+                    ? "border-teal bg-teal/10"
                     : selectedFile
                     ? "border-green-400 bg-green-50"
-                    : "border-gray-300 hover:border-violet-400"
+                    : "border-gray-300 hover:border-teal"
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -226,7 +226,7 @@ export default function Dashboard() {
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-slate-gray">
                         <p className="font-medium">{selectedFile.name}</p>
                         <p className="text-gray-500">{selectedFile.size}</p>
                       </div>
@@ -236,7 +236,7 @@ export default function Dashboard() {
                           e.stopPropagation();
                           clearSelectedFile();
                         }}
-                        className="text-sm text-violet-600 hover:text-violet-500 font-medium"
+                        className="text-sm text-teal hover:text-teal/90 font-medium"
                       >
                         Remove file
                       </button>
@@ -257,8 +257,8 @@ export default function Dashboard() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <div className="flex text-sm text-gray-600">
-                        <span className="relative cursor-pointer bg-white rounded-md font-medium text-violet-600 hover:text-violet-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-violet-500">
+                      <div className="flex text-sm text-slate-gray">
+                        <span className="relative cursor-pointer bg-white rounded-md font-medium text-teal hover:text-teal/90 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-teal">
                           Upload a file
                         </span>
                         <p className="pl-1">or drag and drop</p>
@@ -316,7 +316,7 @@ export default function Dashboard() {
               <button
                 type="submit"
                 disabled={isLoading || !selectedFile}
-                className="bg-violet-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="bg-teal text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
                   <div className="flex items-center">

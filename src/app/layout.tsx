@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 import Navigation from "../components/Navigation";
 
-const figtree = Figtree({
-  variable: "--font-figtree",
+const montserrat = Montserrat({
   subsets: ["latin"],
+  variable: "--font-montserrat",
+});
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-open-sans",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${figtree.variable} antialiased`}>
+      <body
+        className={`${openSans.variable} ${montserrat.variable} font-sans antialiased`}
+      >
         <Navigation />
         {children}
       </body>
