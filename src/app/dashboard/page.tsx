@@ -25,6 +25,7 @@ interface SelectedFile {
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
+  const [exportedFileName, setExportedFileName] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +63,7 @@ export default function Dashboard() {
       name: file.name,
       size: formatFileSize(file.size),
     });
+    setExportedFileName(file.name.replace(/\.pdf$/i, "") + "_highlighted.pdf");
   };
 
   const handleFileInputChange = (
@@ -95,6 +97,7 @@ export default function Dashboard() {
 
   const clearSelectedFile = () => {
     setSelectedFile(null);
+    setExportedFileName("");
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -138,7 +141,7 @@ export default function Dashboard() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `highlighted_${selectedFile.name}`;
+        a.download = exportedFileName || `highlighted_${selectedFile.name}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -282,6 +285,24 @@ export default function Dashboard() {
                 onChange={handleFileInputChange}
               />
             </div>
+
+            {selectedFile && (
+              <div>
+                <label
+                  htmlFor="exportedFileName"
+                  className="block text-sm font-medium text-slate-gray mb-2"
+                >
+                  Output PDF Name:
+                </label>
+                <input
+                  type="text"
+                  id="exportedFileName"
+                  value={exportedFileName}
+                  onChange={(e) => setExportedFileName(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
+                />
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
