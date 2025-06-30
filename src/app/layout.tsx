@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.variable} ${montserrat.variable} font-sans antialiased`}
+        className={`${openSans.variable} ${montserrat.variable} font-sans antialiased bg-slate-50`}
       >
         <Navigation />
         {children}

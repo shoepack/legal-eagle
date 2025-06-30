@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Pricing() {
   return (
-    <main className="min-h-screen bg-slate-50 py-12">
+    <main className="min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-heading font-bold text-navy mb-4">
