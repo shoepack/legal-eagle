@@ -360,7 +360,7 @@ export default function Dashboard() {
                 sections
               </li>
               <li>
-                • Time-keeper names are color-coded for easy identification
+                • Timekeeper names are color-coded for easy identification
               </li>
               <li>• Download your highlighted PDF instantly</li>
             </ul>
