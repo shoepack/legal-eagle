@@ -3,7 +3,7 @@ import CheckIcon from "@/components/CheckIcon";
 
 export default function Pricing() {
   return (
-    <main className="min-h-screen bg-white pt-24 sm:pt-32">
+    <main className="min-h-screen bg-gray-50 pt-24 sm:pt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-heading font-bold text-navy mb-4">
@@ -20,7 +20,7 @@ export default function Pricing() {
             <div className="bg-teal text-white text-center text-sm font-bold uppercase tracking-wider py-2 rounded-t-lg">
               Recommended
             </div>
-            <div className="relative bg-light-blue rounded-b-lg shadow-lg border-2 border-teal p-6 flex flex-col flex-grow">
+            <div className="relative bg-white rounded-b-lg shadow-lg border-2 border-teal p-6 flex flex-col flex-grow">
               <div className="flex-grow">
                 <div className="text-center">
                   <h3 className="text-2xl font-semibold text-navy mb-2">

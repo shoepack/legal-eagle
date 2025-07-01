@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import CheckIcon from "@/components/CheckIcon";
 
 const DEBUG = true; // Set to false to disable debug logging
 
@@ -177,10 +178,10 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-white pt-24 sm:pt-32">
+    <main className="min-h-screen bg-gray-50 pt-24 sm:pt-32">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-heading font-bold text-navy mb-4">
+          <h1 className="text-4xl font-heading font-bold text-navy mb-4">
             PDF Highlighter Dashboard
           </h1>
           <p className="text-lg text-slate-gray">
@@ -189,7 +190,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -333,11 +334,11 @@ export default function Dashboard() {
             )}
 
             {/* Submit Button */}
-            <div className="flex justify-center">
+            <div className="flex justify-center pt-4">
               <button
                 type="submit"
                 disabled={isLoading || !selectedFile}
-                className="bg-teal text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="bg-teal text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed transition-transform duration-200 transform hover:scale-105 hover:shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -370,20 +371,44 @@ export default function Dashboard() {
             </div>
           </form>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">
+          <div className="mt-8 p-6 bg-light-blue rounded-lg border border-teal/20">
+            <h3 className="text-lg font-semibold text-navy mb-3">
               How it works:
             </h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Upload your legal invoice PDF (up to 10MB)</li>
-              <li>
-                • Our system automatically identifies Adjustments and Credit
-                sections
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <div className="flex-shrink-0">
+                  <CheckIcon />
+                </div>
+                <p className="ml-3 text-slate-gray">
+                  Upload your legal invoice PDF (up to 10MB)
+                </p>
               </li>
-              <li>
-                • Timekeeper names are color-coded for easy identification
+              <li className="flex items-start">
+                <div className="flex-shrink-0">
+                  <CheckIcon />
+                </div>
+                <p className="ml-3 text-slate-gray">
+                  Our system automatically identifies Adjustments and Credit
+                  sections
+                </p>
               </li>
-              <li>• Download your highlighted PDF instantly</li>
+              <li className="flex items-start">
+                <div className="flex-shrink-0">
+                  <CheckIcon />
+                </div>
+                <p className="ml-3 text-slate-gray">
+                  Timekeeper names are color-coded for easy identification
+                </p>
+              </li>
+              <li className="flex items-start">
+                <div className="flex-shrink-0">
+                  <CheckIcon />
+                </div>
+                <p className="ml-3 text-slate-gray">
+                  Download your highlighted PDF instantly
+                </p>
+              </li>
             </ul>
           </div>
         </div>
