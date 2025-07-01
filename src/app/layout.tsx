@@ -14,7 +14,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LegalUtils PDF Highlighter",
+  title: "LegalUtils",
   description:
     "Automatically highlight Adjustments and Credit sections in legal invoices. Save time and improve accuracy with our intelligent PDF processing tool.",
   icons: {
