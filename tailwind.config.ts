@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   content: [
@@ -10,6 +11,9 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-figtree)"],
+      },
+      colors: {
+        navy: "#1A237E",
       },
     },
   },

@@ -62,7 +62,7 @@ export default function Navigation() {
             </Link>
             <Link
               href="/dashboard"
-              className="bg-teal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90"
+              className="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A237E] transition-colors duration-300 ease-in-out"
             >
               Dashboard
             </Link>
