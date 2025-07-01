@@ -20,16 +20,16 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
+    <main className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-heading font-bold text-navy">
+        <h2 className="mt-6 text-center text-4xl font-heading font-bold text-navy">
           {isLogin ? "Sign in to your account" : "Create your account"}
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-gray">
+        <p className="mt-4 text-center text-sm text-slate-gray">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="font-medium text-teal hover:text-teal/90"
+            className="font-medium text-teal hover:text-teal/90 hover:underline"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>
@@ -37,7 +37,7 @@ export default function Login() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-6 shadow-xl sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
@@ -120,7 +120,7 @@ export default function Login() {
                 <div className="text-sm">
                   <a
                     href="#"
-                    className="font-medium text-teal hover:text-teal/90"
+                    className="font-medium text-teal hover:text-teal/90 hover:underline"
                   >
                     Forgot your password?
                   </a>
@@ -132,7 +132,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed transition-transform duration-200 transform hover:scale-105 hover:shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -167,11 +167,11 @@ export default function Login() {
             </div>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <div className="text-center">
               <Link
                 href="/"
-                className="text-sm text-slate-gray hover:text-slate-gray/90"
+                className="text-sm text-slate-gray hover:text-slate-gray/90 hover:underline"
               >
                 ← Back to home
               </Link>

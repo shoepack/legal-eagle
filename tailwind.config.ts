@@ -9,11 +9,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ["var(--font-figtree)"],
-      },
       colors: {
-        navy: "#1A237E",
+        "light-blue": "#f0f9ff",
+        navy: "#0a192f",
+        teal: "#00df9a",
+        "slate-gray": "#8892b0",
+      },
+      fontFamily: {
+        heading: ["Poppins", "sans-serif"],
+        body: ["Roboto", "sans-serif"],
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic":
+          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
   },
