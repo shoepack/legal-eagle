@@ -188,8 +188,8 @@ export default function Home() {
                   2. We Analyze Your Data
                 </h3>
                 <p className="text-slate-gray">
-                  Our custom tools get to work, extracting and analyzing key
-                  information.
+                  Our custom tools immediately get to work, extracting and
+                  analyzing key information.
                 </p>
               </div>
             </div>
