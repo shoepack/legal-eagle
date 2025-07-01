@@ -10,7 +10,14 @@ module.exports = {
       colors: {
         navy: "#1A237E",
         "slate-gray": "#37474F",
-        teal: "#00BFA5",
+        teal: {
+          DEFAULT: "#00BFA5",
+          500: "#00BFA5",
+          600: "#00A994",
+        },
+        cyan: {
+          400: "#26C6DA",
+        },
         white: "#FFFFFF",
       },
       fontFamily: {

@@ -20,7 +20,7 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <main className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-heading font-bold text-navy">
           {isLogin ? "Sign in to your account" : "Create your account"}
