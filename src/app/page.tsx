@@ -201,9 +201,7 @@ export default function Home() {
             >
               <div
                 ref={lastDotRef}
-                className={`timeline-dot ${
-                  scroll >= (dotPositions[2] || 1) ? "reached" : ""
-                }`}
+                className={`timeline-dot ${scroll >= 1 ? "reached" : ""}`}
               ></div>
               <div className="timeline-content">
                 <h3 className="text-xl font-semibold text-navy mb-2">
