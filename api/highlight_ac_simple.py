@@ -187,7 +187,9 @@ def rename_pdf_title(src: Path, new_title: str) -> None:
         print(f"Could not set PDF title for {src.name}: {e}")
 
 
-def highlight_invoice(inp: Path, out: Path):
+def highlight_invoice(inp: str | Path, out: str | Path, title: str | None = None):
+    inp = Path(inp)
+    out = Path(out)
     doc = fitz.open(inp)
     with pdfplumber.open(inp) as plumber:
         # 1. Pre-process all pages once
@@ -226,11 +228,12 @@ def highlight_invoice(inp: Path, out: Path):
             if rect_block:
                 safe_highlight(page, rect_block, color)
 
-    doc.save(out, deflate=True)
+    doc.save(out, incremental=False, deflate=True, garbage=4)
     doc.close()
 
-    # Rename the document title using the output filename
-    rename_pdf_title(out, out.stem)
+    # fall back to file-stem only after we've guaranteed Path type
+    final_title = title or out.stem
+    rename_pdf_title(out, final_title)
 
 if __name__ == "__main__":
     import sys

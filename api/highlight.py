@@ -39,8 +39,10 @@ async def process_pdf_endpoint(file: UploadFile = File(...)):
     output_path = input_path.with_suffix(".highlighted.pdf")
 
     try:
-        log.info(f"Processing file: {input_path} -> {output_path}")
-        highlight_invoice(str(input_path), str(output_path))
+        # Extract the original filename to use as the title
+        original_filename = file.filename or "highlighted.pdf"
+        log.info(f"Processing file: {input_path} -> {output_path} with title {original_filename}")
+        highlight_invoice(str(input_path), str(output_path), title=original_filename)
         log.info(f"Finished processing. Checking for output file at {output_path}")
 
         if not output_path.exists():
@@ -48,10 +50,11 @@ async def process_pdf_endpoint(file: UploadFile = File(...)):
             raise HTTPException(status_code=500, detail="Failed to create highlighted PDF")
 
         log.info(f"Returning highlighted file: {output_path}")
+        # Use the original filename for the downloaded file
         return FileResponse(
             path=str(output_path),
             media_type="application/pdf",
-            filename="highlighted.pdf",
+            filename=original_filename,
         )
     except Exception as e:
         log.error(f"An error occurred during highlighting: {e}", exc_info=True)
