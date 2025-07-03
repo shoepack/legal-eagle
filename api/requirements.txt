@@ -3,3 +3,4 @@ python-multipart
 uvicorn
 pdfplumber
 PyMuPDF
+pypdf>=4.0

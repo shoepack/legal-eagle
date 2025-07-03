@@ -17,6 +17,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 import pdfplumber
 import fitz
+from pypdf import PdfReader, PdfWriter
 
 # ─────────────── Patterns ─────────────────────────────────────
 LI_PATTERN = re.compile(r'^\s*\d{1,3}\s+\d{1,2}/\d{1,2}/\d{4}')
@@ -165,6 +166,27 @@ def extract_keeper_name_words(item: LineItem):
     except StopIteration:
         return first_row # Fallback to the whole first row
 
+def rename_pdf_title(src: Path, new_title: str) -> None:
+    """Renames the title of a PDF in-place."""
+    try:
+        reader = PdfReader(src)
+        writer = PdfWriter()
+
+        for page in reader.pages:
+            writer.add_page(page)
+
+        writer.add_metadata({"/Title": new_title})
+
+        if "/Metadata" in writer._root_object:
+            del writer._root_object["/Metadata"]
+
+        with open(src, "wb") as f:
+            writer.write(f)
+    except Exception as e:
+        # Log error but don't block completion
+        print(f"Could not set PDF title for {src.name}: {e}")
+
+
 def highlight_invoice(inp: Path, out: Path):
     doc = fitz.open(inp)
     with pdfplumber.open(inp) as plumber:
@@ -206,6 +228,9 @@ def highlight_invoice(inp: Path, out: Path):
 
     doc.save(out, deflate=True)
     doc.close()
+
+    # Rename the document title using the output filename
+    rename_pdf_title(out, out.stem)
 
 if __name__ == "__main__":
     import sys
