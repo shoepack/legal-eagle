@@ -6,10 +6,42 @@ from pathlib import Path
 import sys
 import shutil
 import logging
+import importlib.metadata
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
+
+def log_library_versions():
+    """Log versions of all libraries from requirements.txt for debugging deployment issues"""
+    requirements_libraries = [
+        'fastapi',
+        'python-multipart',
+        'uvicorn',
+        'pdfplumber',
+        'PyMuPDF',
+        'pypdf'
+    ]
+    
+    log.info("=== LIBRARY VERSIONS DEBUG INFO ===")
+    for lib in requirements_libraries:
+        try:
+            # Handle special cases for library name differences
+            if lib == 'python-multipart':
+                version = importlib.metadata.version('python-multipart')
+            elif lib == 'PyMuPDF':
+                version = importlib.metadata.version('PyMuPDF')
+            else:
+                version = importlib.metadata.version(lib)
+            log.info(f"{lib}: {version}")
+        except importlib.metadata.PackageNotFoundError:
+            log.warning(f"{lib}: NOT FOUND")
+        except Exception as e:
+            log.error(f"{lib}: ERROR getting version - {e}")
+    log.info("=== END LIBRARY VERSIONS ===")
+
+# Log library versions on startup
+log_library_versions()
 
 # Add the current directory to Python path to import our highlight scripts
 sys.path.append(os.path.dirname(__file__))
