@@ -21,16 +21,26 @@ export async function POST(request: NextRequest) {
     debugLog("DEBUG API: Parsing form data...");
     const formData = await request.formData();
     const file = formData.get("file") as File;
+    const platform = formData.get("platform") as string;
 
     debugLog(
       "DEBUG API: File received:",
       file ? file.name : "null",
       file ? file.size : "null"
     );
+    debugLog("DEBUG API: Platform received:", platform);
 
     if (!file) {
       debugLog("DEBUG API: No file uploaded");
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    if (!platform) {
+      debugLog("DEBUG API: No platform specified");
+      return NextResponse.json(
+        { error: "Platform selection required" },
+        { status: 400 }
+      );
     }
 
     // Validate file type
@@ -67,9 +77,14 @@ export async function POST(request: NextRequest) {
         process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
     }
 
+    // Create new FormData to forward with platform info
+    const forwardFormData = new FormData();
+    forwardFormData.append("file", file);
+    forwardFormData.append("platform", platform);
+
     const response = await fetch(pythonApiUrl, {
       method: "POST",
-      body: formData,
+      body: forwardFormData,
       headers,
     });
 

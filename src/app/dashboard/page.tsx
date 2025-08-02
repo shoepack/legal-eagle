@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import CheckIcon from "@/components/CheckIcon";
 
 const DEBUG = true; // Set to false to disable debug logging
@@ -23,13 +23,37 @@ interface SelectedFile {
   size: string;
 }
 
+type Platform = "T360" | "CounselLink" | "";
+
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [exportedFileName, setExportedFileName] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved platform preference on component mount
+  useEffect(() => {
+    const savedPlatform = localStorage.getItem("preferredPlatform") as Platform;
+    if (
+      savedPlatform &&
+      (savedPlatform === "T360" || savedPlatform === "CounselLink")
+    ) {
+      setSelectedPlatform(savedPlatform);
+    }
+  }, []);
+
+  // Save platform preference when changed
+  const handlePlatformChange = (platform: Platform) => {
+    setSelectedPlatform(platform);
+    if (platform) {
+      localStorage.setItem("preferredPlatform", platform);
+    } else {
+      localStorage.removeItem("preferredPlatform");
+    }
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -108,6 +132,11 @@ export default function Dashboard() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!selectedPlatform) {
+      setError("Please select a platform before uploading");
+      return;
+    }
+
     if (!selectedFile) {
       setError("Please select a PDF file");
       return;
@@ -118,6 +147,7 @@ export default function Dashboard() {
 
     const formData = new FormData();
     formData.append("file", selectedFile.file);
+    formData.append("platform", selectedPlatform);
 
     try {
       debugLog("DEBUG: Starting file upload...");
@@ -192,6 +222,34 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Platform Selection */}
+            <div>
+              <label
+                htmlFor="platform"
+                className="block text-sm font-medium text-slate-gray mb-2"
+              >
+                Legal Platform <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="platform"
+                value={selectedPlatform}
+                onChange={(e) =>
+                  handlePlatformChange(e.target.value as Platform)
+                }
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
+                required
+              >
+                <option value="">Select a platform...</option>
+                <option value="T360">T360 (Currently Working)</option>
+                <option value="CounselLink">CounselLink (Coming Soon)</option>
+              </select>
+              {!selectedPlatform && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Please select your legal platform to continue
+                </p>
+              )}
+            </div>
+
             <div>
               <label
                 htmlFor="file"
@@ -337,7 +395,12 @@ export default function Dashboard() {
             <div className="flex justify-center pt-4">
               <button
                 type="submit"
-                disabled={isLoading || !selectedFile}
+                disabled={
+                  isLoading ||
+                  !selectedFile ||
+                  !selectedPlatform ||
+                  selectedPlatform === "CounselLink"
+                }
                 className="bg-teal text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal disabled:bg-gray-400 disabled:cursor-not-allowed transition-transform duration-200 transform hover:scale-105 hover:shadow-lg"
               >
                 {isLoading ? (
@@ -364,11 +427,47 @@ export default function Dashboard() {
                     </svg>
                     Processing...
                   </div>
+                ) : selectedPlatform === "CounselLink" ? (
+                  "Coming Soon"
                 ) : (
                   "Highlight PDF"
                 )}
               </button>
             </div>
+
+            {/* CounselLink Notice */}
+            {selectedPlatform === "CounselLink" && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">
+                      CounselLink Support Coming Soon
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <p>
+                        We're currently developing CounselLink PDF highlighting
+                        capabilities. Please check back soon or contact support
+                        for updates on availability.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
 
           <div className="mt-8 p-6 bg-light-blue rounded-lg border border-teal/20">

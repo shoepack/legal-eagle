@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import FileResponse
 import tempfile
 import os
@@ -11,26 +11,41 @@ import logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# Add the current directory to Python path to import our highlight script
+# Add the current directory to Python path to import our highlight scripts
 sys.path.append(os.path.dirname(__file__))
 
 try:
-    from highlight_ac_simple import highlight_invoice
-    log.info("Successfully imported highlight_invoice from highlight_ac_simple")
+    from highlight_ac_simple import highlight_invoice as highlight_t360
+    log.info("Successfully imported highlight_t360 from highlight_ac_simple")
 except ImportError as e:
-    log.error(f"Failed to import highlight_invoice: {e}")
+    log.error(f"Failed to import highlight_t360: {e}")
     # Fallback if import fails
-    def highlight_invoice(input_path, output_path):
-        log.info("Using fallback highlight_invoice (file copy)")
+    def highlight_t360(input_path, output_path, title=None):
+        log.info("Using fallback highlight_t360 (file copy)")
         # Simple fallback - just copy the file
         shutil.copy2(input_path, output_path)
+
+try:
+    from highlight_counsellink import highlight_counsellink_invoice
+    log.info("Successfully imported highlight_counsellink_invoice from highlight_counsellink")
+except ImportError as e:
+    log.error(f"Failed to import highlight_counsellink_invoice: {e}")
+    # Fallback if import fails
+    def highlight_counsellink_invoice(input_path, output_path, title=None):
+        log.info("Using fallback highlight_counsellink_invoice")
+        raise HTTPException(status_code=501, detail="CounselLink highlighting not available")
 
 app = FastAPI()
 
 @app.post("/python-api/highlight")
-async def process_pdf_endpoint(file: UploadFile = File(...)):
+async def process_pdf_endpoint(file: UploadFile = File(...), platform: str = Form(...)):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    
+    if not platform:
+        raise HTTPException(status_code=400, detail="Platform selection is required")
+    
+    log.info(f"Processing PDF for platform: {platform}")
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_input_file:
         shutil.copyfileobj(file.file, tmp_input_file)
@@ -42,7 +57,18 @@ async def process_pdf_endpoint(file: UploadFile = File(...)):
         # Extract the original filename to use as the title
         original_filename = file.filename or "highlighted.pdf"
         log.info(f"Processing file: {input_path} -> {output_path} with title {original_filename}")
-        highlight_invoice(str(input_path), str(output_path), title=original_filename)
+        
+        # Route to appropriate highlighter based on platform
+        if platform == "T360":
+            log.info("Routing to T360 highlighter")
+            highlight_t360(str(input_path), str(output_path), title=original_filename)
+        elif platform == "CounselLink":
+            log.info("Routing to CounselLink highlighter")
+            highlight_counsellink_invoice(str(input_path), str(output_path), title=original_filename)
+        else:
+            log.error(f"Unsupported platform: {platform}")
+            raise HTTPException(status_code=400, detail=f"Unsupported platform: {platform}")
+        
         log.info(f"Finished processing. Checking for output file at {output_path}")
 
         if not output_path.exists():
@@ -56,6 +82,9 @@ async def process_pdf_endpoint(file: UploadFile = File(...)):
             media_type="application/pdf",
             filename=original_filename,
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like the CounselLink 501 error)
+        raise
     except Exception as e:
         log.error(f"An error occurred during highlighting: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="An error occurred during highlighting.")
