@@ -459,9 +459,9 @@ export default function Dashboard() {
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
                       <p>
-                        We're currently developing CounselLink PDF highlighting
-                        capabilities. Please check back soon or contact support
-                        for updates on availability.
+                        We&apos;re currently developing CounselLink PDF
+                        highlighting capabilities. Please check back soon or
+                        contact support for updates on availability.
                       </p>
                     </div>
                   </div>
