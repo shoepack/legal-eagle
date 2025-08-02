@@ -13,6 +13,10 @@
     {
       "source": "/python-api/highlight",
       "destination": "/api/highlight.py"
+    },
+    {
+      "source": "/python-api/debug/versions",
+      "destination": "/api/highlight.py"
     }
   ]
 }

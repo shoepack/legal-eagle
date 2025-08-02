@@ -12,8 +12,8 @@ import importlib.metadata
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-def log_library_versions():
-    """Log versions of all libraries from requirements.txt for debugging deployment issues"""
+def get_library_versions():
+    """Get versions of all libraries from requirements.txt for debugging deployment issues"""
     requirements_libraries = [
         'fastapi',
         'python-multipart',
@@ -23,7 +23,7 @@ def log_library_versions():
         'pypdf'
     ]
     
-    log.info("=== LIBRARY VERSIONS DEBUG INFO ===")
+    versions = {}
     for lib in requirements_libraries:
         try:
             # Handle special cases for library name differences
@@ -33,11 +33,20 @@ def log_library_versions():
                 version = importlib.metadata.version('PyMuPDF')
             else:
                 version = importlib.metadata.version(lib)
-            log.info(f"{lib}: {version}")
+            versions[lib] = version
         except importlib.metadata.PackageNotFoundError:
-            log.warning(f"{lib}: NOT FOUND")
+            versions[lib] = "NOT FOUND"
         except Exception as e:
-            log.error(f"{lib}: ERROR getting version - {e}")
+            versions[lib] = f"ERROR: {str(e)}"
+    
+    return versions
+
+def log_library_versions():
+    """Log versions of all libraries from requirements.txt for debugging deployment issues"""
+    versions = get_library_versions()
+    log.info("=== LIBRARY VERSIONS DEBUG INFO ===")
+    for lib, version in versions.items():
+        log.info(f"{lib}: {version}")
     log.info("=== END LIBRARY VERSIONS ===")
 
 # Log library versions on startup
@@ -68,6 +77,17 @@ except ImportError as e:
         raise HTTPException(status_code=501, detail="CounselLink highlighting not available")
 
 app = FastAPI()
+
+@app.get("/python-api/debug/versions")
+async def debug_versions():
+    """Debug endpoint to check library versions - accessible in browser"""
+    versions = get_library_versions()
+    return {
+        "message": "Library versions installed on Vercel",
+        "versions": versions,
+        "python_version": sys.version,
+        "platform": sys.platform
+    }
 
 @app.post("/python-api/highlight")
 async def process_pdf_endpoint(file: UploadFile = File(...), platform: str = Form(...)):
