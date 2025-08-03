@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple
 # ── palette ────────────────────────────────────────────────────────────────
 hex2rgb = lambda h: [int(h[i:i+2], 16) / 255 for i in (0, 2, 4)]
 YELLOW  = hex2rgb("FFED99")
-PASTELS = list(map(hex2rgb, ("FFCCD8", "C3F0A9", "AFF5FF", "FFC69A")))
+PASTELS = list(map(hex2rgb, ("FFCCD8", "C3F0A9", "AFF5FF", "FFC69A", "7AB2FB", "D5B0F7", "B4B0AF")))
 next_pastel = itertools.cycle(PASTELS)
 
 # ── patterns & layout ───────────────────────────────────────────────────────
