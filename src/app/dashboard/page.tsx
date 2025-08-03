@@ -239,8 +239,10 @@ export default function Dashboard() {
                 className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal focus:border-teal sm:text-sm"
                 required
               >
-                <option value="">Select a platform...</option>
-                <option value="T360">T360 (Currently Working)</option>
+                <option value="" selected>
+                  Select a platform...
+                </option>
+                <option value="T360">T360</option>
                 <option value="CounselLink">CounselLink</option>
               </select>
               {!selectedPlatform && (
