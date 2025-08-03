@@ -96,6 +96,18 @@ def highlight(src="input.pdf", dst="output.pdf"):
 
         mu_doc.save(dst, garbage=4, deflate=True)
 
+# ── wrapper function for API integration ───────────────────────────────────
+def highlight_counsellink_invoice(input_path: str, output_path: str, title: str = None):
+    """
+    Wrapper function that matches the T360 interface for API integration.
+    
+    Args:
+        input_path: Path to input PDF file
+        output_path: Path to output highlighted PDF file
+        title: Optional title parameter (not used by CounselLink highlighter but kept for interface compatibility)
+    """
+    highlight(input_path, output_path)
+
 # ── CLI ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     if len(sys.argv) == 1:
