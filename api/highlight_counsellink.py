@@ -48,7 +48,7 @@ def bbox(ws, pad=0.3):
     )
 
 def paint(page: fitz.Page, rect: fitz.Rect,
-          colour: Tuple[float, float, float], alpha: float = 0.80):
+          colour: Tuple[float, float, float], alpha: float = 0.95):
     """
     Add a real Highlight annotation (no outline, Multiply blend).
     
