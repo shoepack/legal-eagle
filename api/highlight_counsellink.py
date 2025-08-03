@@ -1,61 +1,106 @@
 #!/usr/bin/env python3
 """
-highlight_counsellink.py
+highlight_counsellink.py · rev J  – border-less highlights
 
-Placeholder highlighter for CounselLink platform PDFs.
-This is a work-in-progress implementation that will be developed
-to handle CounselLink-specific PDF highlighting requirements.
-
-For now, it returns an error message indicating the feature is in development.
+• Uses Highlight annotations (page.add_highlight_annot)  
+• Custom colour + opacity, but zero outline  
+• Text underneath remains perfectly crisp thanks to Multiply blend
 """
 
-import tempfile
-import os
-from pathlib import Path
-import logging
-from fastapi import HTTPException
+from __future__ import annotations
+import sys, re, itertools, pdfplumber, fitz
+from typing import Dict, List, Tuple
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
+# ── palette ────────────────────────────────────────────────────────────────
+hex2rgb = lambda h: [int(h[i:i+2], 16) / 255 for i in (0, 2, 4)]
+YELLOW  = hex2rgb("FFED99")
+PASTELS = list(map(hex2rgb, ("FFCCD8", "C3F0A9", "AFF5FF", "FFC69A")))
+next_pastel = itertools.cycle(PASTELS)
 
-def highlight_counsellink_invoice(input_path: str, output_path: str, title: str = None):
-    """
-    Placeholder function for CounselLink PDF highlighting.
-    
-    Args:
-        input_path (str): Path to the input PDF file
-        output_path (str): Path where the highlighted PDF should be saved
-        title (str, optional): Title for the output PDF
-    
-    Raises:
-        HTTPException: Always raises a 501 Not Implemented error with user-friendly message
-    """
-    log.info(f"CounselLink highlighter called for: {input_path}")
-    log.info("CounselLink highlighting is currently in development")
-    
-    # For now, raise an exception with a user-friendly message
-    raise HTTPException(
-        status_code=501,
-        detail="CounselLink highlighting is currently in development. Please check back soon or contact support for updates."
+# ── patterns & layout ───────────────────────────────────────────────────────
+SEC_RE  = re.compile(r"Client Adjusted Charges Summary", re.I)
+CRL_RE  = re.compile(r"^CRL\w+", re.I)
+ROW_RE  = re.compile(r"^\d+\s+\d{2}/\d{2}/\d{4}\s+[A-Z]{2,5}\b")
+DATE_RE = re.compile(r"\d{2}/\d{2}/\d{4}")
+INIT_RE = re.compile(r"^[A-Z]{2,5}$")
+ROW_TOL, HEADER_LEFT = 2.0, 150     # spacing heuristics
+
+# ── helpers ────────────────────────────────────────────────────────────────
+def group_rows(words, tol=ROW_TOL):
+    """Yield lists of words that share the same baseline (≈ same y-coord)."""
+    words = sorted(words, key=lambda w: (w["top"], w["x0"]))
+    buf, top = [], None
+    for w in words:
+        if top is None or abs(w["top"] - top) <= tol:
+            buf.append(w); top = w["top"] if top is None else top
+        else:
+            yield sorted(buf, key=lambda x: x["x0"]); buf, top = [w], w["top"]
+    if buf:
+        yield sorted(buf, key=lambda x: x["x0"])
+
+def bbox(ws, pad=0.3):
+    """Tight-ish bounding box around a list of pdfplumber word dicts."""
+    return fitz.Rect(
+        min(w["x0"] for w in ws) - pad,
+        min(w["top"] for w in ws) - pad,
+        max(w["x1"] for w in ws) + pad,
+        max(w["bottom"] for w in ws) + pad,
     )
 
+def paint(page: fitz.Page, rect: fitz.Rect,
+          colour: Tuple[float, float, float], alpha: float = 0.80):
+    """
+    Add a real Highlight annotation (no outline, Multiply blend).
+    
+    colour → use as “stroke” because that’s the channel Highlight annots respect.
+    """
+    annot = page.add_highlight_annot(rect)
+    annot.set_colors(stroke=colour)   # sets the highlight colour
+    annot.set_opacity(alpha)          # make it pop (adjust as you like)
+    annot.update()
+
+# ── main routine ───────────────────────────────────────────────────────────
+def highlight(src="input.pdf", dst="output.pdf"):
+    pastel_of: Dict[str, Tuple[float, float, float]] = {}
+    with pdfplumber.open(src) as pl_doc, fitz.open(src) as mu_doc:
+        in_sec = in_hdr = False
+        for pl_pg, mu_pg in zip(pl_doc.pages, mu_doc):
+            for row in group_rows(pl_pg.extract_words()):
+                text = " ".join(w["text"] for w in row).strip()
+
+                # enter section
+                if not in_sec:
+                    in_sec = bool(SEC_RE.search(text))
+                    continue
+
+                # ── CRL header (yellow) ───────────────────────────────
+                if CRL_RE.match(text): in_hdr = True
+                if in_hdr and not ROW_RE.match(text):
+                    if row[0]["x0"] < HEADER_LEFT:
+                        paint(mu_pg, bbox(row), YELLOW)
+                    continue
+                if in_hdr and ROW_RE.match(text): in_hdr = False
+
+                # ── body rows (date + initials, same pastel) ──────────
+                if ROW_RE.match(text):
+                    date_w = next((w for w in row if DATE_RE.fullmatch(w["text"])), None)
+                    init_w = next((w for w in row
+                                   if date_w and w["x0"] > date_w["x1"]
+                                   and INIT_RE.fullmatch(w["text"])), None)
+                    if not (date_w and init_w):
+                        continue
+
+                    col = pastel_of.setdefault(init_w["text"], next(next_pastel))
+                    paint(mu_pg, bbox([date_w]), col)
+                    paint(mu_pg, bbox([init_w]), col)
+
+        mu_doc.save(dst, garbage=4, deflate=True)
+
+# ── CLI ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 3:
-        print("Usage: python highlight_counsellink.py input.pdf output.pdf")
-        sys.exit(1)
-    
-    input_path = Path(sys.argv[1])
-    output_path = Path(sys.argv[2])
-    
-    if not input_path.exists():
-        print(f"Error: Input file {input_path} does not exist")
-        sys.exit(1)
-    
-    try:
-        highlight_counsellink_invoice(str(input_path), str(output_path))
-        print(f"Successfully processed {input_path} -> {output_path}")
-    except Exception as e:
-        print(f"Error processing PDF: {e}")
-        sys.exit(1)
+    if len(sys.argv) == 1:
+        highlight()                       # input.pdf → output.pdf
+    elif len(sys.argv) == 3:
+        highlight(sys.argv[1], sys.argv[2])
+    else:
+        sys.exit("Usage:  python highlight_counsellink.py [in.pdf out.pdf]")
